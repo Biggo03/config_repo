@@ -26,8 +26,10 @@ return {
     --  General Formatting (via Conform)
     -- =====================================================
     require("conform").setup({
-      formatters_by_ft = {
-      },
+        formatters_by_ft = {
+            verilog = { "verible-verilog-format" },
+            sh = { "shfmt" },
+        },
     })
 
     -- =====================================================

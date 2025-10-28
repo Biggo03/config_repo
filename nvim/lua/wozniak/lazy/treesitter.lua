@@ -10,7 +10,7 @@ return {
 
       -- Main Treesitter configuration
       require("nvim-treesitter.configs").setup({
-        ensure_installed = { "c", "cpp", "lua", "python", "verilog", "vhdl" },
+        ensure_installed = { "c", "cpp", "lua", "python", "verilog", "perl" },
         sync_install = false,
         auto_install = true,
 
