@@ -13,5 +13,7 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
     spec = "wozniak.lazy",
-    change_detection = { notify = false }
+    change_detection = { notify = false },
+    install = { missing = false },
+    checker = { enabled = false },
 })

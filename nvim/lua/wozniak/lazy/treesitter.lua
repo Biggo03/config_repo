@@ -36,13 +36,12 @@ return {
             end
           end,
 
-          -- Keep legacy regex highlighting for Markdown
-          additional_vim_regex_highlighting = { "markdown" },
+          additional_vim_regex_highlighting = false,
         },
 
         rainbow = {
-            enable = true, 
-            extended_mode = true 
+            enable = true,
+            extended_mode = true
         },
       })
     end,
