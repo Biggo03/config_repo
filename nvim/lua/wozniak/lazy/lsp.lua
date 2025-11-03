@@ -55,8 +55,6 @@ return {
     require("mason").setup()
     require("mason-lspconfig").setup({
       ensure_installed = {
-        "pyright",        -- Python
-        "bashls",         -- Bash
         "verible",        -- SystemVerilog/Verilog formatter/linter
         "lua_ls",         -- Lua (for your Neovim config)
       },
