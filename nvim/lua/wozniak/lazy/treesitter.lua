@@ -1,56 +1,99 @@
+local parsers = {
+  "c",
+  "cpp",
+  "lua",
+  "python",
+  "systemverilog",
+  "perl",
+  "vhdl",
+}
+
+local treesitter_filetypes = {
+  "c",
+  "cpp",
+  "lua",
+  "python",
+  "verilog",
+  "perl",
+  "vhdl",
+}
+
+-- Treesitter indentation is not currently provided for every parser above.
+local indent_filetypes = {
+  c = true,
+  cpp = true,
+  lua = true,
+  python = true,
+}
+
 return {
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "main",
+    lazy = false,
     build = ":TSUpdate",
+
     config = function()
-      -- Prefer git for fetching parsers, and use standard C compilers
-      local ts_install = require("nvim-treesitter.install")
-      ts_install.prefer_git = true
-      ts_install.compilers = { "gcc", "clang" }
+      local ts = require("nvim-treesitter")
 
-      -- Main Treesitter configuration
-      require("nvim-treesitter.configs").setup({
-        ensure_installed = { "c", "cpp", "lua", "python", "verilog", "perl" },
-        sync_install = false,
-        auto_install = true,
+      -- Default install location/settings are fine.
+      ts.setup({})
 
-        indent = {
-          enable = true,
-        },
+      -- Install any parsers that are missing.
+      local installed = ts.get_installed("parsers")
 
-        highlight = {
-          enable = true,
+      local missing = vim.tbl_filter(function(parser)
+        return not vim.list_contains(installed, parser)
+      end, parsers)
 
-          -- Disable Treesitter dynamically for large files or certain languages
-          disable = function(lang, buf)
+      if #missing > 0 then
+        ts.install(missing):wait(300000)
+      end
 
-            local max_filesize = 100 * 1024 -- 100 KB
-            local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-            if ok and stats and stats.size > max_filesize then
+      -- Treesitter features are now enabled through Neovim itself.
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = treesitter_filetypes,
+
+        callback = function(args)
+          -- Preserve your old "disable Treesitter for >100 KB files" behavior.
+          local filename = vim.api.nvim_buf_get_name(args.buf)
+
+          if filename ~= "" then
+            local stats = vim.uv.fs_stat(filename)
+
+            if stats and stats.size > 100 * 1024 then
               vim.notify(
                 "File larger than 100KB — Treesitter disabled for performance",
                 vim.log.levels.WARN,
                 { title = "Treesitter" }
               )
-              return true
+              return
             end
-          end,
+          end
 
-          additional_vim_regex_highlighting = false,
-        },
+          -- Syntax highlighting.
+          vim.treesitter.start(args.buf)
 
-        rainbow = {
-            enable = true,
-            extended_mode = true
-        },
+          -- Treesitter indentation where the parser currently supports it.
+          local filetype = vim.bo[args.buf].filetype
+
+          if indent_filetypes[filetype] then
+            vim.bo[args.buf].indentexpr =
+              "v:lua.require'nvim-treesitter'.indentexpr()"
+          end
+        end,
       })
     end,
   },
 
-  -- Context plugin (shows sticky function/class headers)
+  -- Sticky function/class/module context at top of screen.
   {
     "nvim-treesitter/nvim-treesitter-context",
-    after = "nvim-treesitter",
+
+    dependencies = {
+      "nvim-treesitter/nvim-treesitter",
+    },
+
     config = function()
       require("treesitter-context").setup({
         enable = true,
@@ -59,7 +102,7 @@ return {
         multiline_threshold = 20,
         trim_scope = "outer",
         zindex = 20,
-        max_lines = 0, -- no limit
+        max_lines = 0,
         separator = nil,
       })
     end,
